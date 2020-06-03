@@ -19,3 +19,26 @@ def loadMnist(): #return [train, test]
     return(filtered_data.astype('float')/255,filtered_labels)
 
 
+# calculate the standard deviation and mean along each coloum.
+def standardize_arrays(data):
+    #rows std
+    s = data.std(0)
+    m = np.mean(data, axis=0)
+    data = data - m
+    data = data / (s + 1.0)
+    return (data)
+
+# Randomly shuffle the data,lables
+def shuffle_array_the_same(a, b):
+    assert len(a) == len(b)
+    p = np.random.permutation(len(a))
+    return a[p], b[p]
+
+
+def random_shuffeled_Mnist():
+    (data, labels) = loadMnist()
+    (data_shufled, labels_shufled) = shuffle_array_the_same(data, labels)
+    data_random_shuffeled=standardize_arrays(data_shufled)
+    return (data_random_shuffeled,labels_shufled)
+
+

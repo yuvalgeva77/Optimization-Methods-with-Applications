@@ -27,6 +27,8 @@ function [train, test] = loadMnist()
   % We standardize the data so that each pixel will have roughly zero mean and unit variance.
   s=std(X,[],2);
   m=mean(X,2);
+    %Create a matrix and calculate the standard deviation along each row.
+
   X=bsxfun(@minus, X, m);
   X=bsxfun(@rdivide, X, s+.1);
 
