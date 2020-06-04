@@ -2,7 +2,7 @@ from mlxtend.data import mnist_data
 import numpy as np
 
 
-# return X=[x1|...|Xm]   R:nxm
+# return X=[x1|...|Xm].trnspode()   R:mxn
 # Y=[y1|...|ym].traranspose   R:mx1
 def loadMnist():  # return [train, test]
     # Dimensions x: 5000 x 784
@@ -18,7 +18,7 @@ def loadMnist():  # return [train, test]
     # Take only d1 and d2 digits
     filtered_data = np.array([X[i] for i in range(0, X.shape[0]) if (Y[i] == d1 or Y[i] == d2)])  # (1000, 1)
     filtered_labels = np.array([[Y[i]] for i in range(0, X.shape[0]) if (Y[i] == d1 or Y[i] == d2)])  # (1000, 784)
-    return (filtered_data.transpose().astype('float') / 255, filtered_labels)
+    return (filtered_data.astype('float') / 255, filtered_labels)
 
 
 # calculate the standard deviation and mean along each coloum.

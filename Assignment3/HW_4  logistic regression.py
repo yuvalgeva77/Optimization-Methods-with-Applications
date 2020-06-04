@@ -38,37 +38,38 @@ def exact_Newton(f, H,J, x_0,  eps = 0.00001):
         x_k = x_k +a*d_n
     return x_k
 
-def logistic_func(x_i, w):
-    return lambda w: 1 / 1 + math.exp(mul(-x_i, w))
+def logistic_func(x_i,w):
+    return  (1 / 1 + math.exp(mul(-x_i, w)))
 
 #preforms logistic_func on each row on array
 #return [logistic_func(x_1, w)|...|logistic_func(x_m, w)].traspose()  Rmx1
-def logistic_func_Marix(X, w):
-    return lambda w: np.array(logistic_func(X[i],w) for i in range(0, X.shape[0])).transpose()
-def logistic_func_Marix_Minus1(X, w):
-    return lambda w: np.array(logistic_func(X[i],w) for i in range(0, X.shape[0])).transpose()
+def logistic_func_Marix(X):
+    return lambda w: np.vstack(([np.array(logistic_func(X[i],w)) for i in range(0, X.shape[0])]))
+def logistic_func_Marix_Minus1(X):
+    return lambda w:np.vstack(([np.array(1-logistic_func(X[i],w)) for i in range(0, X.shape[0])]))
 
 
 
 
-def logistic_regression_objective(X, Y, w):
+def logistic_regression_objective(X, Y):
     n, m = X.shape  # columns
-    c1=Y,c2=Y
+    c1=Y
+    c2=Y
     oppsite = lambda y: 1-y
     vfunc = np.vectorize(oppsite)
     c2=vfunc(c2)
-    return lambda w: (-1/m)*mul(c1.Transpose(),np.apply_along_axis(math.log2, 1, (logistic_func_Marix(X.transpose(), w)))), +mul(c2.Transpose() ,np.apply_along_axis(math.log2, 1, (logistic_func_Marix_Minus1(X.transpose(), w))))
+    return lambda w: (-1/m)*(c1.transpose(),np.apply_along_axis(math.log2, 1, (logistic_func_Marix(X.transpose())( w)))) +mul(c2.transpose() ,np.apply_along_axis(math.log2, 1, (logistic_func_Marix_Minus1(X.transpose())( w))))
 
 
 
-def gradient(X, Y, w):
+def gradient(X, Y):
     n, m = X.shape  # columns
-    return lambda w:X.mul(logistic_func_Marix(X.transpose(), w) - Y) / m
+    return lambda w:X.mul(logistic_func_Marix(X.transpose())( w) - Y) / m
 
 #TODO fix
-def hessian(X, w):
+def hessian(X):
     n, m = X.shape  # columns
-    return lambda w:X.mul((np.diag(mul(logistic_func_Marix(X.transpose(), w).transpose(),(logistic_func_Marix_Minus1(X.transpose(), w))))).mul(X.transpose())) / m
+    return lambda w:X.mul((np.diag(mul(logistic_func_Marix(X.transpose())( w).transpose(),(logistic_func_Marix_Minus1(X.transpose())( w))))).mul(X.transpose())) / m
 
 
 def task_4a(X, labels):
@@ -80,6 +81,8 @@ def task_4a(X, labels):
 # return X=[x1|...|Xm]   R:nxm
 # labels=[y1|...|ym].traranspose   R:mx1
 (X, labels) = loadMNIST.random_shuffeled_Mnist()
-(J, G, H)=task_4a(X, labels)
-
-
+(f, j, H)=task_4a(X, labels)
+n, m = X.shape
+# w=np.ones(n)
+w=(np.ones(n)/n)
+w_0=gradient_descent(w,H)
