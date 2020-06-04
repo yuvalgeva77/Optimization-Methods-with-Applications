@@ -41,51 +41,45 @@ def exact_Newton(f, H,J, x_0,  eps = 0.00001):
 def logistic_func(x_i, w):
     return lambda w: 1 / 1 + math.exp(mul(-x_i, w))
 
-
+#preforms logistic_func on each row on array
+#return [logistic_func(x_1, w)|...|logistic_func(x_m, w)].traspose()  Rmx1
 def logistic_func_Marix(X, w):
-    n, m = X.shape
-    res = np.zeros((n, 1))
-    for i in range(0, m):
-        x_i = X[:, i]  # ith First Column
-        res[i] = 1 / 1 + math.exp(mul(-x_i, w))
-    return lambda w:res(w)
+    return lambda w: np.array(logistic_func(X[i],w) for i in range(0, X.shape[0])).transpose()
+def logistic_func_Marix_Minus1(X, w):
+    return lambda w: np.array(logistic_func(X[i],w) for i in range(0, X.shape[0])).transpose()
 
 
-def logistic_regression_objective(X, y, w):
+
+
+def logistic_regression_objective(X, Y, w):
     n, m = X.shape  # columns
-    res = 0
-    for i in range(0, m):
-        x_i = X[:, i]  # ith First Column
-        res =+(y[i] * math.log2(logistic_func(x_i.transpose(), w)) + 1 - y[i]) * math.log2(1 - logistic_func(x_i, w))
-    return lambda w:res(w) / m
+    c1=Y,c2=Y
+    oppsite = lambda y: 1-y
+    vfunc = np.vectorize(oppsite)
+    c2=vfunc(c2)
+    return lambda w: (-1/m)*mul(c1.Transpose(),np.apply_along_axis(math.log2, 1, (logistic_func_Marix(X.transpose(), w)))), +mul(c2.Transpose() ,np.apply_along_axis(math.log2, 1, (logistic_func_Marix_Minus1(X.transpose(), w))))
+
 
 
 def gradient(X, Y, w):
     n, m = X.shape  # columns
-    return lambda w:X.mul(logistic_func_Marix(X.transpose(), w) - Y[0]) / m
+    return lambda w:X.mul(logistic_func_Marix(X.transpose(), w) - Y) / m
 
-
+#TODO fix
 def hessian(X, w):
     n, m = X.shape  # columns
-    d1 = logistic_func_Marix(X.transpose(), w)
-    d2 = np.ones((m, 1)) - d1
-    for i in range(0, m):
-        res = d1[i] * d2[i]
-    D = p.diag(res)
-    return lambda w:X.mul(D.mul(X.transpose())) / m
+    return lambda w:X.mul((np.diag(mul(logistic_func_Marix(X.transpose(), w).transpose(),(logistic_func_Marix_Minus1(X.transpose(), w))))).mul(X.transpose())) / m
 
 
 def task_4a(X, labels):
-    J = logistic_regression_objective(X, labels)
-    print("logistic_regression_objective  {0}\n".format(J))
-    G = gradient(X, labels, w)
-    print("gradient is:  {0}\n".format(G))
-    H = hessian(X, w)
-    print("hessian is:  {0}\n".format(H))
-    return (J, G, H)
+    f = logistic_regression_objective(X, labels)
+    j = gradient(X, labels)
+    H = hessian(X)
+    return (f, j, H)
 
-
+# return X=[x1|...|Xm]   R:nxm
+# labels=[y1|...|ym].traranspose   R:mx1
 (X, labels) = loadMNIST.random_shuffeled_Mnist()
-w=np.ones(X.shape[])
 (J, G, H)=task_4a(X, labels)
-G(w)
+
+
