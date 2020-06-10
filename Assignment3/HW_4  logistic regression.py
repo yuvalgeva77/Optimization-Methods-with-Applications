@@ -4,9 +4,7 @@
 import numpy as np
 import math
 from numpy import matmul as mul
-from mlxtend.data import mnist_data
-import loadMNIST
-from numpy.linalg import inv
+from עבודות.עבודות.Assignment3 import loadMNIST
 from random import gauss
 
 
@@ -36,21 +34,21 @@ def exact_Newton(f, H,J, x_0,  eps = 0.00001):
     x_k=x_0
     while abs(f(x_k)) > eps:
         a=armijo(x_k, f, J)
-        d_n=mul(inv(H(x_k)),J(x_k))
+        d_n=mul(np.linalg.inv(H(x_k)),J(x_k))
         x_k = x_k +a*d_n
     return x_k
 #-----------------------------------------------------------
 
 def sigmoid(x_i,w):
-    return  (1 / 1 + math.exp(mul(-x_i, w)))
+    return   (1 /( 1 + math.exp(mul(x_i, w))))
 
 #preforms logistic_func on each row on array
 #return [logistic_func(x_1, w)|...|logistic_func(x_m, w)].traspose()  Rmx1
-def sigmoid_Marix(X): #todo np.exp
-    return lambda w: np.vstack(([np.array(sigmoid(X[i],w)) for i in range(0, X.shape[0])]))
+def sigmoid_Marix(X):
+    return lambda w: 1 / (1 + np.exp(np.dot(-X, w)))
 
-def sigmoid_Minus1(X):#todo:np.log
-    return lambda w:np.vstack(([np.array(1-sigmoid(X[i],w)) for i in range(0, X.shape[0])]))
+def sigmoid_Minus1(X):
+    return lambda w: 1-sigmoid_Marix(X,w)
 
 
 def logistic_regression_objective(X, Y):
@@ -60,20 +58,73 @@ def logistic_regression_objective(X, Y):
     oppsite = lambda y: 1-y
     vfunc = np.vectorize(oppsite)
     c2=vfunc(c2)
-    return lambda w: (-1/m)*mul(c1.transpose(),np.apply_along_axis(math.log, 1, (sigmoid_Marix(X.transpose())( w)))) +mul(c2.transpose() ,np.apply_along_axis(math.log, 1, (sigmoid_Minus1(X.transpose())( w))))#TODO np.log
-    #todo check c1.transpose() or c1
+    return lambda w: (-1/m)*(mul(c1.transpose(), np.log(sigmoid_Marix(X.transpose(), w))) + mul(c2.transpose(),np.log( sigmoid_Minus1(X.transpose(),w))))
 
-
+#todo check: gradient(X.transpose(), labels, w_i) size m*n = 784*1000?? #should be vector but is matrix??
 def gradient(X, Y):
     n, m = X.shape  # columns
-    return lambda w: X.mul(sigmoid_Marix(X.transpose())( w) - Y) / m
+    return lambda w:(mul(X,sigmoid_Marix(X.transpose(),w) - Y)) / m
 
+#todo check (hessian(X.transpose(), w_0)) size m*m = 784*784??
 def hessian(X):
     n, m = X.shape  # columns
-    #D=np.diag(logistic_func_Marix(X.transpose())( w).mul(logistic_func_Marix_Minus1(X.transpose())( w)))
-    # X.mul(D.mul(X.transpose())) / m
-    return lambda w:X.mul(np.diag(sigmoid_Marix(X.transpose())( w).mul(sigmoid_Minus1(X.transpose())( w))).mul(X.transpose())) / m
+    def hessian(w):
+        # np.multiply -Multiply arguments element-wise.
+        D = np.diag(np.multiply(sigmoid_Marix(X.transpose(), w), (sigmoid_Minus1(X.transpose(), w))))
+        D_Xt = mul(D, X.transpose())
+        x_D_Xt = mul(X, D_Xt)
+        return x_D_Xt
 
+    return lambda w:hessian(w)
+
+# The gradient test ,The Jacobian test:
+def gradient_jacobian_test(X,labels,f,gradient,hessian,eps=1,factor=0.5,limit=6):
+    # (X, labels) = loadMNIST.random_shuffeled_Mnist()
+    n, m = X.shape
+    def make_rand_vector(dims):
+        vec = [gauss(0, 1) for i in range(dims)]
+        mag = sum(x ** 2 for x in vec) ** .5
+        return [x / mag for x in vec]
+    d = np.array(make_rand_vector(m))
+    w_0 = np.zeros(m)
+    eps_i = (factor ** 0) * eps
+    w_i = w_0 + eps_i * d
+
+    res_1_prev = abs(f(X.transpose(), labels, w_i) - f(X.transpose(), labels, w_0))
+
+    res_2_prev = abs(f(X.transpose(), labels, w_i) - f(X.transpose(), labels, w_0) - eps * mul(d.transpose(), (
+        gradient(X.transpose(), labels, w_0))))  #todo first part is vector gradient matrix. todo norm not abs?
+    res_3_prev = np.linalg.norm(gradient(X.transpose(), labels, w_i) - gradient(X.transpose(), labels, w_0))
+
+    res_4_prev = np.linalg.norm(
+        (gradient(X.transpose(), labels, w_i) - gradient(X.transpose(), labels, w_0) - eps * mul(
+            d.transpose(), (hessian(X.transpose(), w_0)))))  #todo first part is marix 784*1000, hessian matrix 784*784. todo norm not abs?
+
+    for i in range(1, limit):
+        eps_i = (factor ** i) * eps
+        w_i = w_0 + eps_i * d
+        res1 = abs(f(X.transpose(), labels, w_i) - f(X.transpose(), labels, w_0))
+        res2 = abs((f(X.transpose(), labels, w_i) - f(X.transpose(), labels, w_0) - eps_i * mul(d.transpose(), (
+            gradient(X.transpose(), labels, w_0)))))  # todo check
+        if (abs((res_1_prev / res1) - factor) > 1 or abs((res_2_prev / res2) - (factor ** 2)) > 1):
+            print("failed The gradient test with eps:{0}, iteration {1}".format(eps, i))
+            return False
+
+
+        res3 = np.linalg.norm(gradient(X.transpose(), labels, w_i) - gradient(X.transpose(), labels, w_0))
+        res4 = np.linalg.norm((gradient(X.transpose(), labels, w_i) - gradient(X.transpose(), labels,
+                                                                               w_0) - eps_i * mul(d.transpose(), (
+            hessian(X.transpose(), w_0)))))  # todo check
+        if (abs((res_3_prev / res3) - factor) > 1 or abs((res_4_prev / res4) - (factor ** 2)) > 1):
+            print("failed The gradient test with eps:{0}, iteration {1}".format(eps, i))
+            return False
+
+        res_1_prev = res1
+        res_2_prev = res2
+        res_3_prev = res3
+        res_4_prev = res4
+    print("seccesed The gradient and the jacobian test  with eps:{0}, iteration {1}".format(eps, i))
+    return True
 
 def task_4a():
     # return X=[x1|...|Xm]   R:nxm
@@ -82,82 +133,24 @@ def task_4a():
     f_objective = logistic_regression_objective(X, labels)
     grad = gradient(X, labels)
     hess = hessian(X)
-    return (f_objective, grad, hess,X)
+    return (f_objective, grad, hess)
 
+def task_4b():
+    # return X=[x1|...|Xm]   R:nxm
+    # labels=[y1|...|ym].traranspose   R:mx1
+    (X, labels) = loadMNIST.random_shuffeled_Mnist()
+    f_objective = logistic_regression_objective(X, labels)
+    grad = gradient(X, labels)
+    hess = hessian(X)
+    return (gradient_jacobian_test(X,labels ,f_objective, grad,hess))
 
-
-# The gradient test ,The Jacobian test:
-def gradient_jacobian_test(X,f,grad,eps=1,factor=0.5,limit=20):
+def task_4c():
+    (X, labels) = loadMNIST.random_shuffeled_Mnist()
     n, m = X.shape
+    f_objective = logistic_regression_objective(X, labels)
+    grad = gradient(X, labels)
+    hess = hessian(X)
+    w_0 = np.zeros(m)
+    gradient_descent(w_0, hess)
+    # exact_Newton(f_objective, hess,J, w_0):
 
-    def make_rand_vector(dims):
-        vec = [gauss(0, 1) for i in range(dims)]
-        mag = sum(x ** 2 for x in vec) ** .5
-        return [x / mag for x in vec]
-
-    d = make_rand_vector(n, )
-    print("A")
-    res_1_prev = math.abs(f(X + eps * d) - f(X))
-    print("A")
-    res_2_prev = math.abs(f(X + eps * d) - f(X) - eps * d.transpose().mul(grad(X)))
-    res_2_prev= math.abs(f(X + eps * d) - f(X) - eps * d.transpose().mul(grad(X)))
-    jackMV = grad(eps * d)
-    res_3_prev= math.abs(f(X + eps * d) - f(X) - jackMV)
-
-    for i in range(1,limit):
-        eps_i=(factor**i)*eps
-        res1=math.abs(f(X+eps_i*d)-f(X))
-        res2 = math.abs(f(X + eps_i * d) - f(X)-eps_i*d.transpose().mul(grad(X)))
-        if(res_1_prev/factor!=res1 or res_2_prev/(factor**2)!=res2):
-            print("failed The gradient test with eps:{0}, iteration {1}".format(eps,i))
-            return  False
-        jackMV = grad(eps_i * d)
-        res_3 = math.abs(f(X + eps_i * d) - f(X) - jackMV)
-        if res_1_prev / 2 != res1 or res_3_prev / (factor ** 2) != res2:
-            print("failed The Jacobian test with eps:{0}, iteration {1}".format(eps, i))
-            return False
-        res_1_prev=res1
-        res_2_prev = res2
-        rres_3_prev=res_3
-    print("seccesed The gradient and the jacobian test  with eps:{0}, iteration {1}".format(eps, i))
-    return True
-
-
-(f, grad, hess,X)= task_4a()
-n, m = X.shape
-def make_rand_vector(dims):
-    vec = [gauss(0, 1) for i in range(dims)]
-    mag = sum(x ** 2 for x in vec) ** .5
-    return [x / mag for x in vec]
-
-d = make_rand_vector(m)
-eps=1
-factor=0.5
-limit=20
-print("A")
-w_0=np.zeros(m)
-x=w_0
-res_1_prev = math.abs(f(x + eps * d) - f(X))
-print("A")
-
-res_2_prev = math.abs(f(x + eps * d) - f(x) - eps * d.transpose().mul(grad(X)))
-res_2_prev = math.abs(f(X + eps * d) - f(x) - eps * d.transpose().mul(grad(X)))
-jackMV = grad(eps * d)
-res_3_prev = math.abs(f(x + eps * d) - f(x) - jackMV)
-
-for i in range(1, limit):
-    eps_i = (factor ** i) * eps
-    res1 = math.abs(f(x + eps_i * d) - f(X))
-    res2 = math.abs(f(x + eps_i * d) - f(X) - eps_i * d.transpose().mul(grad(x)))
-    if (res_1_prev / factor != res1 or res_2_prev / (factor ** 2) != res2):
-        print("failed The gradient test with eps:{0}, iteration {1}".format(eps, i))
-
-    jackMV = grad(eps_i * d)
-    res_3 = math.abs(f(x + eps_i * d) - f(x) - jackMV)
-    if res_1_prev / 2 != res1 or res_3_prev / (factor ** 2) != res2:
-        print("failed The Jacobian test with eps:{0}, iteration {1}".format(eps, i))
-
-    res_1_prev = res1
-    res_2_prev = res2
-    rres_3_prev = res_3
-print("seccesed The gradient and the jacobian test  with eps:{0}, iteration {1}".format(eps, i))
