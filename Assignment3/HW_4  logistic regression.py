@@ -32,10 +32,12 @@ def gradient_descent(x_0, H, eps = 0.00001,a = 0.01):
 #J,H,f lambdas
 def exact_Newton(f, H,J, x_0,  eps = 0.00001):
     x_k=x_0
+    res=[]
     while abs(f(x_k)) > eps:
         a=armijo(x_k, f, J)
         d_n=mul(np.linalg.inv(H(x_k)),J(x_k))
         x_k = x_k +a*d_n
+        res=res.append(x_k)
     return x_k
 #-----------------------------------------------------------
 
@@ -45,7 +47,7 @@ def sigmoid(x_i,w):
 #preforms logistic_func on each row on array
 #return [logistic_func(x_1, w)|...|logistic_func(x_m, w)].traspose()  Rmx1
 def sigmoid_Marix(X):
-    return lambda w: 1 / (1 + np.exp(np.dot(-X, w)))
+    return lambda w: np.reshape(X,(1, X.size))1 / (1 + np.exp(np.dot(-X, w))),
 
 def sigmoid_Minus1(X):
     return lambda w: 1-sigmoid_Marix(X,w)

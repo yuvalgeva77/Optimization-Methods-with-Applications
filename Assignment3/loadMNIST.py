@@ -38,10 +38,10 @@ def shuffle_array_the_same(a, b):
     return a[p], b[p]
 
 
-# return X=[x1|...|Xm]   R:nxm, n=num images, m=28^2 num of pixels in an image. x[0][4] pixel 4 in image 0
-# Y=[y1|...|ym].traranspose   R:mx1  Y[0] label of image 0 (X[0])
+# return X=[x1|...|Xm].transpose()   R:nxm, n=num images, m=28^2 num of pixels in an image. x[0][4] pixel 4 in image 0
+# Y=[y1|...|ym].transform()   R:mx1  Y[0] label of image 0 (X[0])
 def random_shuffeled_Mnist():
     (data, labels) = loadMnist()
     (data_shufled, labels_shufled) = shuffle_array_the_same(data, labels)
     data_random_shuffeled = standardize_arrays(data_shufled)
-    return data_random_shuffeled, labels_shufled
+    return data_random_shuffeled.transpose(), labels_shufled
