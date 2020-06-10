@@ -75,7 +75,7 @@ def hessian(X):
         D = np.diag(np.multiply(sigmoid_Marix(X.transpose(), w), (sigmoid_Minus1(X.transpose(), w))))
         D_Xt = mul(D, X.transpose())
         x_D_Xt = mul(X, D_Xt)
-        return x_D_Xt
+        return (1/m)*x_D_Xt
 
     return lambda w:hessian(w)
 
