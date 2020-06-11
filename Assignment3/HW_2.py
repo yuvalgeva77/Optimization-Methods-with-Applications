@@ -96,7 +96,7 @@ def weightedLS(A,Y,w):
         return(x_weighted)
 
 
-def task_3a(l=80/2):
+def task_2a(l=80/2):
     x_1 = np.arange(0.0, 5.1, 0.1)
     x = x_1.reshape((51, 1))
     n = x.shape[0]
@@ -108,12 +108,12 @@ def task_3a(l=80/2):
     print(x_ans)
     # plt.plot(x.reshape(x.shape[0], 1), f(x), 'b')
     # plt.plot(x_ans.reshape(x.shape[0],1), y_func(x_ans), 'r')
-    plt.title("task 3a")
+    plt.title("task 2a")
     plt.plot(x, f(x), 'b')
     plt.plot(x, x_ans, 'r')
     plt.show()
 
-def task_3b(l=1,eps=0.001):
+def task_2b(l=1,eps=0.001):
     x_1 = np.arange(0.0, 5.1, 0.1)
     x_1 = x_1.reshape((51, 1))
     x_i=x_1
@@ -121,7 +121,7 @@ def task_3b(l=1,eps=0.001):
     w= np.ones(n)
     A = np.identity(n)
     G = G_matrix(n)
-    for i in range(0,10):
+    for i in range(0, 10):
         print("w:  {0}\n".format(w))
         Y = y_func(x_i)
         print("Y:  {0}\n".format(Y))
@@ -140,9 +140,9 @@ def task_3b(l=1,eps=0.001):
     # plt.plot(x_1, y_func(x_1), 'r')
     plt.plot(x_1, f(x_1), 'b')
     plt.plot(x_1, x_i, 'r')
-    plt.title("task 3b")
+    plt.title("task 2b")
     plt.show()
 
-task_3a()
-task_3b()
+task_2a()
+task_2b()
 
