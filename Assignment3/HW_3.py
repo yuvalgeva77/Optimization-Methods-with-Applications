@@ -150,14 +150,14 @@ def show_graph(descent_list, newton_list, title, f):
 
 
 def question_e():
-    list_desent_e = desent(100, np.array([100000, 0.001, 110]), 10**-7, 10**-3, f_e, df_e)
-    list_newton_e = newton(100, np.array([1000000, 0.001, 110]), 2, 10 ** -5, f_e, df_e)
+    list_desent_e = desent(100, np.array([1000000, 0.001, 110]), 10**-7, 10**-3, f_e, df_e)
+    list_newton_e = newton(100, np.array([1000000, 0.001, 110]), 1, 10 ** -5, f_e, df_e)
     show_graph(list_desent_e, list_newton_e, 'Question e', f_e)
 
 
 def question_f():
     list_desent_f = desent(100,  np.array([1, 1, 1]), 10**-7, 10**-2, f_f, df_f)
-    list_newton_f = newton(100,  np.array([1, 1, 1]), 2, 10**-5, f_f, df_f)
+    list_newton_f = newton(100,  np.array([1, 1, 1]), 1, 10**-5, f_f, df_f)
     show_graph(list_desent_f, list_newton_f, 'Question f', f_f)
 
 
