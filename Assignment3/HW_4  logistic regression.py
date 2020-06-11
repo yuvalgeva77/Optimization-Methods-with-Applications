@@ -4,54 +4,60 @@
 import numpy as np
 import math
 from numpy import matmul as mul
-from עבודות.עבודות.Assignment3 import loadMNIST
+import loadMNIST
 from random import gauss
-
+import matplotlib.pyplot as plot
 
 #f,J is  lambdas
-# def armijo(x,f,d,J, b=0.5, a_0=1, c=1,max_iter=100):
-#     a_k = a_0
-#     for i in range(0,max_iter):
-#         f_k = f(x+ a_k * d)
-#         limit = f(x) + c * a_k * mul(J(x).transpose(),d)
-#         if f_k <= limit:
-#            break
-#         a_k = a_k * b
-#     return a_k
-#
+def armijo(x,d, f,  gardient, b=0.5, a_0=1, c=1,max_iterations=100):
+    a_k=a_0
+    for i in range(0,max_iterations):
+        f_k = f(x+ a_k * d)
+        limit = f(x) + c * a_k * np.dot(gardient(x).transpose(),d)
+        if f_k <= limit :
+           return a_k
+        a_k = a_k * b
+        max_iterations=max_iterations-1
+    return a_k
 
-def desent(f, gardient, x_k, alpha= 0.01, eps = 0.00001):
-    output = [x_k]
-    while True:
-        f_theta = f(x_k)[0][0]
-        J = gardient(x_k)
-        curr_gradient = np.dot(J.transpose(), f_theta)
-        gradient_norm = np.linalg.norm(curr_gradient)
-        normal_gradient = curr_gradient / gradient_norm
-        # curr_alpha = armijo(x_k, f, -J, gardient)
-        curr_alpha=1
-        D = curr_alpha * normal_gradient
-        next_x = x_k + D
-        if( np.linalg.norm(x_k)!=0):
-             if np.linalg.norm(next_x - x_k) / np.linalg.norm(x_k) < eps:
-                output = output + [x_k]
-                break
 
+def gradient_descent(f, gardient, x_0, alpha= 0.01, eps = 10**-3,max_iterations=100):
+    x_k=np.clip(x_0, -1, 1)
+    output=[]
+    for i in range(0,max_iterations):
+        d_sd = -gardient(x_k)
+        d_sd = np.reshape(d_sd, d_sd.size)
+        a = armijo(x_k, d_sd, f, gardient)
+        # a=1
+        next_x = x_k +a*d_sd
+        np.clip(next_x, -1, 1)
+        if(np.linalg.norm(x_k)!=0):
+            if np.linalg.norm(next_x - x_k)/np.linalg.norm(x_k) < eps:
+                output = output + [next_x]
+                return output
+        output = output + [next_x]
         x_k = next_x
-        output = output + [x_k]
     return output
 
 
-# def exact_Newton(f, H,J, x_0,  eps = 0.00001):
-#     x_k=x_0
-#     res=[]
-#     while abs(f(x_k)) > eps:
-#         a=armijo(x_k, f, J)
-#         d_n=mul(np.linalg.inv(H(x_k)),J(x_k))
-#         x_k = x_k +a*d_n
-#         res=res.append(x_k)
-#     return x_k
-#-----------------------------------------------------------
+def exact_Newton(f, jacobian,gardient, x_0,  eps =10**-3,max_iterations=100):
+    x_k=np.clip(x_0, -1, 1)
+    output=[]
+    for i in range(0,max_iterations):
+        d_n=-mul(np.linalg.inv(jacobian(x_k)),gardient(x_k))
+        d_n = np.reshape(d_n, d_n.size)
+        a = armijo(x_k, d_n, f, gardient)
+        # a=1
+        next_x = x_k +a*d_n
+        np.clip(next_x, -1, 1)
+        if (np.linalg.norm(x_k) != 0):
+            if np.linalg.norm(next_x - x_k)/np.linalg.norm(x_k) < eps:
+                output = output + [next_x]
+                return output
+        output = output + [next_x]
+        x_k = next_x
+    return output
+# -----------------------------------------------------------
 
 def sigmoid(x_i,w):
     return (1 / (1 + math.exp(mul(x_i, w))))
@@ -81,7 +87,7 @@ def gradient(X, Y):
     n, m = X.shape  # columns
     # returns vector size n: 784
     def gradiesnt_w(w):
-       return (1 / m) * (mul(X, sigmoid_Marix(X.transpose())( w) - Y))
+        return (1 / m) * (mul(X, sigmoid_Marix(X.transpose())( w) - Y))
     return lambda w:gradiesnt_w(w)
 
 def hessian(X):
@@ -94,7 +100,7 @@ def hessian(X):
         # X.mul(D.mul(X.transpose())) / m
         D = np.diagflat(np.multiply(sigmoid_Marix(X.transpose())( w), (sigmoid_Minus1(X.transpose())(w))))
         D_Xt = mul(D, X.transpose())
-        x_D_Xt = mul(X, D_Xt)
+        x_D_Xt = mul(X, D_Xt) + np.identity(n)
         return (1 / m) * x_D_Xt
     return lambda w:hessian_w(w)
 
@@ -148,6 +154,7 @@ def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,factor=0.5,limit=6):
         print("seccesed The gradient and the jacobian test  with eps:{0}, iteration {1}".format(eps, i))
     return res
 
+
 def task_4a():
     # return X=[x1|...|Xm]   R:nxm
     # labels=[y1|...|ym].traranspose   R:mx1
@@ -173,7 +180,27 @@ def task_4c():
     grad = gradient(X, labels)
     hess = hessian(X)
     w_0 = np.zeros(n)
-    desent(f_objective,grad,w_0)
+
+    w_i_res_gradient = gradient_descent(f_objective, grad, w_0)
+    f_res_gradient=[]
+    w_res_gradient=w_i_res_gradient[len(w_i_res_gradient)-1]
+    for w_i in w_i_res_gradient:
+        f_res_gradient=f_res_gradient+[abs(f_objective(w_i)[0][0]-f_objective(w_res_gradient)[0][0])]
+
+    w_i_res_Newton = exact_Newton(f_objective, hess,grad, w_0)
+    f_res_Newton = []
+    w_res_Newton = w_i_res_Newton[len(w_i_res_Newton) - 1]
+    for w_i in w_i_res_Newton:
+        f_res_Newton = f_res_Newton + [abs(f_objective(w_i)[0][0] - f_objective(w_res_Newton)[0][0])]
+
+    plot.semilogy(f_res_gradient,label="train Gradient Descent")
+    plot.semilogy(f_res_Newton, label="train Exact Newton")
+    plot.title("task_4c")
+    plot.xlabel('iterations')
+    plot.ylabel('|f(w_k) - f(w_*)|')
+    plot.legend()
+    plot.show()
+    print("res")
     # exact_Newton(f_objective, hess,J, w_0):
 
 task_4c()
