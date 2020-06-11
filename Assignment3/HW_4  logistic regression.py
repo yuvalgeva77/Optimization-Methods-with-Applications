@@ -9,36 +9,48 @@ from random import gauss
 
 
 #f,J is  lambdas
-def armijo(x,f,d,J, b=0.5, a_0=1, c=1,max_iter=100):
-    a_k = a_0
-    for i in range(0,max_iter):
-        f_k = mul(f(x) + a_k * d)
-        limit = f(x) + c * a_k * mul(J(x).transpose(),d)
-        if f_k <= limit:
-           break
-        a_k = a_k * b
-    return a_k
+# def armijo(x,f,d,J, b=0.5, a_0=1, c=1,max_iter=100):
+#     a_k = a_0
+#     for i in range(0,max_iter):
+#         f_k = f(x+ a_k * d)
+#         limit = f(x) + c * a_k * mul(J(x).transpose(),d)
+#         if f_k <= limit:
+#            break
+#         a_k = a_k * b
+#     return a_k
+#
 
-#H, lambdas
-def gradient_descent(x_0, H, eps = 0.00001,a = 0.01):
-    cur_x = x_0  # The algorithm starts at x0
-    previous_step_size = cur_x
-    while previous_step_size > eps:
-        prev_x = cur_x
-        cur_x += -a * H(prev_x)
-        previous_step_size = abs(cur_x - prev_x)#TODO check if abs works on vector
-    return cur_x
+def desent(f, gardient, x_k, alpha= 0.01, eps = 0.00001):
+    output = [x_k]
+    while True:
+        f_theta = f(x_k)[0][0]
+        J = gardient(x_k)
+        curr_gradient = np.dot(J.transpose(), f_theta)
+        gradient_norm = np.linalg.norm(curr_gradient)
+        normal_gradient = curr_gradient / gradient_norm
+        # curr_alpha = armijo(x_k, f, -J, gardient)
+        curr_alpha=1
+        D = curr_alpha * normal_gradient
+        next_x = x_k + D
+        if( np.linalg.norm(x_k)!=0):
+             if np.linalg.norm(next_x - x_k) / np.linalg.norm(x_k) < eps:
+                output = output + [x_k]
+                break
 
-#J,H,f lambdas
-def exact_Newton(f, H,J, x_0,  eps = 0.00001):
-    x_k=x_0
-    res=[]
-    while abs(f(x_k)) > eps:
-        a=armijo(x_k, f, J)
-        d_n=mul(np.linalg.inv(H(x_k)),J(x_k))
-        x_k = x_k +a*d_n
-        res=res.append(x_k)
-    return x_k
+        x_k = next_x
+        output = output + [x_k]
+    return output
+
+
+# def exact_Newton(f, H,J, x_0,  eps = 0.00001):
+#     x_k=x_0
+#     res=[]
+#     while abs(f(x_k)) > eps:
+#         a=armijo(x_k, f, J)
+#         d_n=mul(np.linalg.inv(H(x_k)),J(x_k))
+#         x_k = x_k +a*d_n
+#         res=res.append(x_k)
+#     return x_k
 #-----------------------------------------------------------
 
 def sigmoid(x_i,w):
@@ -160,7 +172,8 @@ def task_4c():
     f_objective = logistic_regression_objective(X, labels)
     grad = gradient(X, labels)
     hess = hessian(X)
-    w_0 = np.zeros(m)
-    gradient_descent(w_0, hess)
+    w_0 = np.zeros(n)
+    desent(f_objective,grad,w_0)
     # exact_Newton(f_objective, hess,J, w_0):
 
+task_4c()
