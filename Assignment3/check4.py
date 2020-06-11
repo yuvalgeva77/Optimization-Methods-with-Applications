@@ -14,8 +14,6 @@ def sigmoid(x_i, w):
 # return [logistic_func(x_1, w)|...|logistic_func(x_m, w)].traspose()  Rmx1
 def sigmoid_Marix(X, w):
     dim1 = (1 / (1 + np.exp(np.dot(-X, w))))
-    np.reshape(dim1, (dim1.size, 1))
-    # return  np.vstack(([np.array(sigmoid(-X[i],w)) for i in range(0, X.shape[0])]))
     return np.reshape(dim1, (dim1.size, 1))
 
 
@@ -45,7 +43,7 @@ def f(X, Y, w):
 def gradient(X, Y, w):
     (1 / m) * (np.dot(X, sigmoid_Marix(X.transpose(), w) - Y))
 
-    return (mul(X, sigmoid_Marix(X.transpose(), w) - Y)) / m
+    return (1 / m) * (mul(X, sigmoid_Marix(X.transpose(), w) - Y))
 
 
 # matrix sized n*n:784*784
