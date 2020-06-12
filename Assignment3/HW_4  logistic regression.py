@@ -8,7 +8,7 @@ import loadMNIST
 from random import gauss
 import matplotlib.pyplot as plot
 
-#f,J is  lambdas
+
 def armijo(x,d, f,  gardient, b=0.5, a_0=1, c=1,max_iterations=100):
     a_k=a_0
     for i in range(0,max_iterations):
@@ -26,10 +26,10 @@ def gradient_descent(f, gardient, x_0, alpha= 0.01, eps = 10**-3,max_iterations=
     for i in range(0,max_iterations):
         d_sd = -gardient(x_k)
         d_sd = np.reshape(d_sd, d_sd.size)
-        # a = armijo(x_k, -d_sd, f, gardient)
+        a = armijo(x_k, -d_sd, f, gardient)
         a=1
         next_x = x_k +a*d_sd
-        np.clip(next_x, -1, 1)
+        next_x=np.clip(next_x, -1, 1)
         if(np.linalg.norm(x_k)!=0):
             if np.linalg.norm(next_x - x_k)/np.linalg.norm(x_k) < eps:
                 output = output + [next_x]
@@ -45,10 +45,10 @@ def exact_Newton(f, jacobian,gardient, x_0,  eps =10**-3,max_iterations=100):
     for i in range(0,max_iterations):
         d_n=-mul(np.linalg.inv(jacobian(x_k)),gardient(x_k))
         d_n = np.reshape(d_n, d_n.size)
-        # a = armijo(x_k, -d_n, f, gardient)
-        a=1
+        a = armijo(x_k, -d_n, f, gardient)
+        # a=1
         next_x = x_k +a*d_n
-        np.clip(next_x, -1, 1)
+        next_x=np.clip(next_x, -1, 1)
         if (np.linalg.norm(x_k) != 0):
             if np.linalg.norm(next_x - x_k)/np.linalg.norm(x_k) < eps:
                 output = output + [next_x]
@@ -57,7 +57,7 @@ def exact_Newton(f, jacobian,gardient, x_0,  eps =10**-3,max_iterations=100):
         x_k = next_x
     return output
 
-def print_test_train_results(w_list,X_train,X_test,fTrain,fTest,title=""):
+def print_test_train_results(w_list,fTrain,fTest,title=""):
     f_train = []
     f_test = []
     for w_i in w_list:
@@ -65,10 +65,10 @@ def print_test_train_results(w_list,X_train,X_test,fTrain,fTest,title=""):
         f_test=f_test+[fTest(w_i)[0][0]]
     fw_ans_train=min(f_train)
     fw_ans_test=min(f_test)
-    eror_train = abs(f_train-fw_ans_train)
-    eror_test =abs(f_test-fw_ans_test)
-    plot.semilogy(eror_train, label="train erorr {0}".format(title))
-    plot.semilogy(eror_test, label="test erorr {0}".format(title))
+    error_train =abs(f_train-fw_ans_train)
+    error_test =abs(f_test-fw_ans_test)
+    plot.semilogy(error_train, label="train convergence: {0}".format(title))
+    plot.semilogy(error_test, label="test convergence: {0}".format(title))
     plot.title("task_4c")
     plot.xlabel('iterations')
     plot.ylabel('|f(w_k) - f(w_*)|')
@@ -80,8 +80,6 @@ def print_test_train_results(w_list,X_train,X_test,fTrain,fTest,title=""):
 def sigmoid(x_i,w):
     return (1 / (1 + math.exp(mul(x_i, w))))
 
-#preforms logistic_func on each row on array
-#return [logistic_func(x_1, w)|...|logistic_func(x_m, w)].traspose()  Rmx1
 def sigmoid_Marix(X):
     def sigmoid_Marix_w(w):
         dim1 = (1 / (1 + np.exp(np.dot(-X, w))))
@@ -129,7 +127,6 @@ def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,factor=0.5,limit=6):
         mag = sum(x ** 2 for x in vec) ** .5
         return [x / mag for x in vec]
     # -------------------
-    # (X, labels) = loadMNIST.random_shuffeled_Mnist()
     n = w_0.shape[0]
     d = np.array(make_rand_vector(n))
     d = np.reshape(d, (d.size, 1))
@@ -151,7 +148,7 @@ def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,factor=0.5,limit=6):
         res1 = abs(f(w_i) - f(w_0))
         res2 = abs((f(w_i) - f(w_0) - eps_i * mul(d.transpose(), (gradient( w_0)))))
         if (abs((res_1_prev / res1) - 1 / factor) > 1 or abs((res_2_prev / res2) - 1 / (factor ** 2)) > 1):
-            print("failed The gradient test with eps:{0}, iteration {1}".format(eps, i))
+            # print("failed The gradient test with eps:{0}, iteration {1}".format(eps, i))
             res = False
         #-------jacobian test------
         res3 = np.linalg.norm(gradient(w_i) - gradient(w_0))
@@ -159,8 +156,8 @@ def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,factor=0.5,limit=6):
             d.transpose(), (hessian( w_0)))))
         # todo abs((res_4_prev / res4) - 1 / (factor ** 2)) is about 3-4 not 1 check whay 2*(factor ** 2)
         if (abs((res_3_prev / res3) - 1 / factor) > 1 or abs((res_4_prev / res4) - 1 / (factor ** 2)) > 1):
-            print("failed The Jacobian test with eps:{0}, iteration {1}, res is ({2},{3})\n".format(eps, i, abs(
-                (res_3_prev / res3) - 1 / factor), abs((res_4_prev / res4) - 1 / (factor ** 2))))
+            # print("failed The Jacobian test with eps:{0}, iteration {1}, res is ({2},{3})\n".format(eps, i, abs(
+            #     (res_3_prev / res3) - 1 / factor), abs((res_4_prev / res4) - 1 / (factor ** 2))))
             res=False
 
         res_1_prev = res1
@@ -192,58 +189,35 @@ def task_4b():
     return (gradient_jacobian_test(w_0 ,f_objective, grad,hess))
 
 def task_4c():
+    #0,1
     (X, labels,X_test,labels_test) = loadMNIST.random_shuffeled_Mnist()
     n, m = X.shape
     fTrain = logistic_regression_objective(X, labels)
     grad = gradient(X, labels)
     hess = hessian(X)
     w_0 = np.zeros(n)
-
-    #gradient_descent -print
     fTest = logistic_regression_objective(X_test, labels_test)
-    # w_i_res_gradient = gradient_descent(fTrain, grad, w_0)
-    # print_test_train_results(w_i_res_gradient,X,X_test,fTrain,fTest, "Gradient Descent")
+    # gradient_descent -print
+    w_i_res_gradient = gradient_descent(fTrain, grad, w_0)
+    print_test_train_results(w_i_res_gradient,fTrain,fTest, "Gradient Descent for 0,1")
+    #  exact_Newton -print
     w_i_res_Newton = exact_Newton(fTrain, hess,grad, w_0)
-    print_test_train_results(w_i_res_Newton, X, X_test, fTrain, fTest, "Exact Newton")
-    # f_res_gradient=[]
-    # f_test_res_gradient = []
-    # f_res_grt=[]
-    # w_res_gradient=w_i_res_gradient[len(w_i_res_gradient)-1]
-    # for w_i in w_i_res_gradient:
-    #     f_res_gradient=f_res_gradient+[abs(f_objective(w_i)[0][0]-f_objective(w_res_gradient)[0][0])]
-    #     f_test_res_gradient=f_test_res_gradient+[abs(f_objective(w_i)[0][0]-f_Test(w_res_gradient)[0][0])]
-    #
-    #     f_res_grt = f_res_grt + [f_objective(w_i)[0][0]]
-    # #---------
-    # w_i_res_Newton = exact_Newton(f_objective, hess,grad, w_0)
-    # f_res_Newton = []
-    # f_res_New=[]
-    # w_res_Newton = w_i_res_Newton[len(w_i_res_Newton) - 1]
-    # for w_i in w_i_res_Newton:
-    #     f_res_Newton = f_res_Newton + [abs(f_objective(w_i)[0][0] - f_objective(w_res_Newton)[0][0])]
-    #     f_res_New = f_res_New + [f_objective(w_i)[0][0]]
-    # #--------
-    # plot.semilogy(f_res_gradient,label="train Gradient Descent")
-    # plot.semilogy(f_res_Newton, label="train Exact Newton")
-    #
-    # plot.title("task_4c")
-    # plot.xlabel('iterations')
-    # plot.ylabel('|f(w_k) - f(w_*)|')
-    # plot.legend()
-    # plot.show()
-    #
-    # plot.semilogy(f_res_grt, label="train cost Gradient Descent")
-    # plot.semilogy(f_res_New, label="train cost Newton")
-    #
-    # # plot.plot(range(len(f_res_grt)),f_res_grt, label="train cost Gradient Descent")
-    # # plot.plot(range(len(f_res_New)),f_res_New, label="train cost Newton")
-    # plot.title("cost")
-    # plot.xlabel('iterations')
-    # plot.ylabel('f(w_k) ')
-    # plot.legend()
-    # plot.show()
-    #
-    # print("res")
-    # exact_Newton(f_objective, hess,J, w_0):
+    print_test_train_results(w_i_res_Newton, fTrain, fTest, "Exact Newton for 0,1")
+
+    # 8,9
+    (X, labels, X_test, labels_test) = loadMNIST.random_shuffeled_Mnist(8,9)
+    labels=np.where(labels == 8, 0, 1)
+    n, m = X.shape
+    fTrain = logistic_regression_objective(X, labels)
+    grad = gradient(X, labels)
+    hess = hessian(X)
+    w_0 = np.zeros(n)
+    fTest = logistic_regression_objective(X_test, labels_test)
+    # gradient_descent -print
+    w_i_res_gradient = gradient_descent(fTrain, grad, w_0)
+    print_test_train_results(w_i_res_gradient, fTrain, fTest, "Gradient Descent for 8,9")
+    #  exact_Newton -print
+    w_i_res_Newton = exact_Newton(fTrain, hess, grad, w_0)
+    print_test_train_results(w_i_res_Newton, fTrain, fTest, "Exact Newton for 8,9")
 
 task_4c()

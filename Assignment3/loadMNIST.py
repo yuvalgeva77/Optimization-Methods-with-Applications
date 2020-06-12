@@ -45,13 +45,13 @@ def shuffle_array_the_same(a, b):
 def random_shuffeled_Mnist(d1=0,d2=1):
     # (data, labels) = loadMnist()
     X_train, y_train = loadlocal_mnist(
-        images_path='t10k-images.idx3-ubyte',
-        labels_path='t10k-labels.idx1-ubyte')
+        images_path='train-images.idx3-ubyte',
+        labels_path='train-labels.idx1-ubyte')
     X_train, y_train=loadMnist(X_train, y_train,d1,d2)
 
     X_test, y_test = loadlocal_mnist(
-        images_path='train-images.idx3-ubyte',
-        labels_path='train-labels.idx1-ubyte')
+        images_path='t10k-images.idx3-ubyte',
+        labels_path='t10k-labels.idx1-ubyte')
     X_test, y_test = loadMnist(X_test, y_test,d1,d2)
 
     (train_data_shufled, train_labels_shufled) = shuffle_array_the_same(X_train, y_train)
