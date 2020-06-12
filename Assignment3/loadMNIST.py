@@ -62,4 +62,3 @@ def random_shuffeled_Mnist(d1=0,d2=1):
 
     return train_data_random_shuffeled.transpose(), train_labels_shufled,test_data_random_shuffeled.transpose(), test_labels_shufled
 
-random_shuffeled_Mnist()

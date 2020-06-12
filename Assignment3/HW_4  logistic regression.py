@@ -56,6 +56,25 @@ def exact_Newton(f, jacobian,gardient, x_0,  eps =10**-3,max_iterations=100):
         output = output + [next_x]
         x_k = next_x
     return output
+
+def print_test_train_results(w_list,X_train,X_test,fTrain,fTest,title=""):
+    f_train = []
+    f_test = []
+    for w_i in w_list:
+        f_train=f_train+[fTrain(w_i)[0][0]]
+        f_test=f_test+[fTest(w_i)[0][0]]
+    fw_ans_train=min(f_train)
+    fw_ans_test=min(f_test)
+    eror_train = abs(f_train-fw_ans_train)
+    eror_test =abs(f_test-fw_ans_test)
+    plot.semilogy(eror_train, label="train erorr {0}".format(title))
+    plot.semilogy(eror_test, label="test erorr {0}".format(title))
+    plot.title("task_4c")
+    plot.xlabel('iterations')
+    plot.ylabel('|f(w_k) - f(w_*)|')
+    plot.legend()
+    plot.show()
+
 # -----------------------------------------------------------
 
 def sigmoid(x_i,w):
@@ -157,14 +176,14 @@ def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,factor=0.5,limit=6):
 def task_4a():
     # return X=[x1|...|Xm]   R:nxm
     # labels=[y1|...|ym].traranspose   R:mx1
-    (X, labels)=loadMNIST.random_shuffeled_Mnist()
+    (X, labels,X_test,labels_test) = loadMNIST.random_shuffeled_Mnist()
     f_objective = logistic_regression_objective(X, labels)
     grad = gradient(X, labels)
     hess = hessian(X)
     return (f_objective, grad, hess)
 
 def task_4b():
-    (X, labels) = loadMNIST.random_shuffeled_Mnist()
+    (X, labels,X_test,labels_test) = loadMNIST.random_shuffeled_Mnist()
     f_objective = logistic_regression_objective(X, labels)
     grad = gradient(X, labels)
     hess = hessian(X)
@@ -173,50 +192,58 @@ def task_4b():
     return (gradient_jacobian_test(w_0 ,f_objective, grad,hess))
 
 def task_4c():
-    (X, labels) = loadMNIST.random_shuffeled_Mnist()
+    (X, labels,X_test,labels_test) = loadMNIST.random_shuffeled_Mnist()
     n, m = X.shape
-    f_objective = logistic_regression_objective(X, labels)
+    fTrain = logistic_regression_objective(X, labels)
     grad = gradient(X, labels)
     hess = hessian(X)
     w_0 = np.zeros(n)
 
-    w_i_res_gradient = gradient_descent(f_objective, grad, w_0)
-    f_res_gradient=[]
-    f_res_grt=[]
-    w_res_gradient=w_i_res_gradient[len(w_i_res_gradient)-1]
-    for w_i in w_i_res_gradient:
-        f_res_gradient=f_res_gradient+[abs(f_objective(w_i)[0][0]-f_objective(w_res_gradient)[0][0])]
-        f_res_grt = f_res_grt + [f_objective(w_i)[0][0]]
-
-    w_i_res_Newton = exact_Newton(f_objective, hess,grad, w_0)
-    f_res_Newton = []
-    f_res_New=[]
-    w_res_Newton = w_i_res_Newton[len(w_i_res_Newton) - 1]
-    for w_i in w_i_res_Newton:
-        f_res_Newton = f_res_Newton + [abs(f_objective(w_i)[0][0] - f_objective(w_res_Newton)[0][0])]
-        f_res_New = f_res_New + [f_objective(w_i)[0][0]]
-
-    plot.semilogy(f_res_gradient,label="train Gradient Descent")
-    plot.semilogy(f_res_Newton, label="train Exact Newton")
-
-    plot.title("task_4c")
-    plot.xlabel('iterations')
-    plot.ylabel('|f(w_k) - f(w_*)|')
-    plot.legend()
-    plot.show()
-
-    plot.semilogy(f_res_grt, label="train cost Gradient Descent")
-    plot.semilogy(f_res_New, label="train cost Newton")
-
-    # plot.plot(range(len(f_res_grt)),f_res_grt, label="train cost Gradient Descent")
-    # plot.plot(range(len(f_res_New)),f_res_New, label="train cost Newton")
-    plot.title("cost")
-    plot.xlabel('iterations')
-    plot.ylabel('f(w_k) ')
-    plot.legend()
-    plot.show()
-
-    print("res")
+    #gradient_descent -print
+    fTest = logistic_regression_objective(X_test, labels_test)
+    # w_i_res_gradient = gradient_descent(fTrain, grad, w_0)
+    # print_test_train_results(w_i_res_gradient,X,X_test,fTrain,fTest, "Gradient Descent")
+    w_i_res_Newton = exact_Newton(fTrain, hess,grad, w_0)
+    print_test_train_results(w_i_res_Newton, X, X_test, fTrain, fTest, "Exact Newton")
+    # f_res_gradient=[]
+    # f_test_res_gradient = []
+    # f_res_grt=[]
+    # w_res_gradient=w_i_res_gradient[len(w_i_res_gradient)-1]
+    # for w_i in w_i_res_gradient:
+    #     f_res_gradient=f_res_gradient+[abs(f_objective(w_i)[0][0]-f_objective(w_res_gradient)[0][0])]
+    #     f_test_res_gradient=f_test_res_gradient+[abs(f_objective(w_i)[0][0]-f_Test(w_res_gradient)[0][0])]
+    #
+    #     f_res_grt = f_res_grt + [f_objective(w_i)[0][0]]
+    # #---------
+    # w_i_res_Newton = exact_Newton(f_objective, hess,grad, w_0)
+    # f_res_Newton = []
+    # f_res_New=[]
+    # w_res_Newton = w_i_res_Newton[len(w_i_res_Newton) - 1]
+    # for w_i in w_i_res_Newton:
+    #     f_res_Newton = f_res_Newton + [abs(f_objective(w_i)[0][0] - f_objective(w_res_Newton)[0][0])]
+    #     f_res_New = f_res_New + [f_objective(w_i)[0][0]]
+    # #--------
+    # plot.semilogy(f_res_gradient,label="train Gradient Descent")
+    # plot.semilogy(f_res_Newton, label="train Exact Newton")
+    #
+    # plot.title("task_4c")
+    # plot.xlabel('iterations')
+    # plot.ylabel('|f(w_k) - f(w_*)|')
+    # plot.legend()
+    # plot.show()
+    #
+    # plot.semilogy(f_res_grt, label="train cost Gradient Descent")
+    # plot.semilogy(f_res_New, label="train cost Newton")
+    #
+    # # plot.plot(range(len(f_res_grt)),f_res_grt, label="train cost Gradient Descent")
+    # # plot.plot(range(len(f_res_New)),f_res_New, label="train cost Newton")
+    # plot.title("cost")
+    # plot.xlabel('iterations')
+    # plot.ylabel('f(w_k) ')
+    # plot.legend()
+    # plot.show()
+    #
+    # print("res")
     # exact_Newton(f_objective, hess,J, w_0):
 
 task_4c()
