@@ -17,7 +17,6 @@ def armijo(x,d, f,  gardient, b=0.5, a_0=1, c=1,max_iterations=100):
         if f_k <= limit :
            return a_k
         a_k = a_k * b
-        max_iterations=max_iterations-1
     return a_k
 
 
@@ -27,8 +26,8 @@ def gradient_descent(f, gardient, x_0, alpha= 0.01, eps = 10**-3,max_iterations=
     for i in range(0,max_iterations):
         d_sd = -gardient(x_k)
         d_sd = np.reshape(d_sd, d_sd.size)
-        a = armijo(x_k, d_sd, f, gardient)
-        # a=1
+        # a = armijo(x_k, -d_sd, f, gardient)
+        a=1
         next_x = x_k +a*d_sd
         np.clip(next_x, -1, 1)
         if(np.linalg.norm(x_k)!=0):
@@ -46,8 +45,8 @@ def exact_Newton(f, jacobian,gardient, x_0,  eps =10**-3,max_iterations=100):
     for i in range(0,max_iterations):
         d_n=-mul(np.linalg.inv(jacobian(x_k)),gardient(x_k))
         d_n = np.reshape(d_n, d_n.size)
-        a = armijo(x_k, d_n, f, gardient)
-        # a=1
+        # a = armijo(x_k, -d_n, f, gardient)
+        a=1
         next_x = x_k +a*d_n
         np.clip(next_x, -1, 1)
         if (np.linalg.norm(x_k) != 0):
@@ -183,23 +182,40 @@ def task_4c():
 
     w_i_res_gradient = gradient_descent(f_objective, grad, w_0)
     f_res_gradient=[]
+    f_res_grt=[]
     w_res_gradient=w_i_res_gradient[len(w_i_res_gradient)-1]
     for w_i in w_i_res_gradient:
         f_res_gradient=f_res_gradient+[abs(f_objective(w_i)[0][0]-f_objective(w_res_gradient)[0][0])]
+        f_res_grt = f_res_grt + [f_objective(w_i)[0][0]]
 
     w_i_res_Newton = exact_Newton(f_objective, hess,grad, w_0)
     f_res_Newton = []
+    f_res_New=[]
     w_res_Newton = w_i_res_Newton[len(w_i_res_Newton) - 1]
     for w_i in w_i_res_Newton:
         f_res_Newton = f_res_Newton + [abs(f_objective(w_i)[0][0] - f_objective(w_res_Newton)[0][0])]
+        f_res_New = f_res_New + [f_objective(w_i)[0][0]]
 
     plot.semilogy(f_res_gradient,label="train Gradient Descent")
     plot.semilogy(f_res_Newton, label="train Exact Newton")
+
     plot.title("task_4c")
     plot.xlabel('iterations')
     plot.ylabel('|f(w_k) - f(w_*)|')
     plot.legend()
     plot.show()
+
+    plot.semilogy(f_res_grt, label="train cost Gradient Descent")
+    plot.semilogy(f_res_New, label="train cost Newton")
+
+    # plot.plot(range(len(f_res_grt)),f_res_grt, label="train cost Gradient Descent")
+    # plot.plot(range(len(f_res_New)),f_res_New, label="train cost Newton")
+    plot.title("cost")
+    plot.xlabel('iterations')
+    plot.ylabel('f(w_k) ')
+    plot.legend()
+    plot.show()
+
     print("res")
     # exact_Newton(f_objective, hess,J, w_0):
 
