@@ -78,7 +78,7 @@ def print_test_train_results(w_list,fTrain,fTest,title=""):
 # -----------------------------------------------------------
 
 def sigmoid(x_i,w):
-    return (1 / (1 + math.exp(mul(x_i, w))))
+    return 1/(1 + math.exp(mul(x_i, w)))
 
 def sigmoid_Marix(X):
     def sigmoid_Marix_w(w):
@@ -86,18 +86,20 @@ def sigmoid_Marix(X):
         return np.reshape(dim1, (dim1.size, 1))
     return lambda w:sigmoid_Marix_w(w)
 
+
 def sigmoid_Minus1(X):
     return lambda w: 1-sigmoid_Marix(X)(w)
 
 
 def logistic_regression_objective(X, Y):
     n, m = X.shape  # columns
-    c1=Y
-    c2=Y
+    c1 = Y
+    c2 = Y
     oppsite = lambda y: 1-y
     vfunc = np.vectorize(oppsite)
-    c2=vfunc(c2)
+    c2 =vfunc(c2)
     return lambda w: (-1/m)*(mul(c1.transpose(), np.log(sigmoid_Marix(X.transpose())( w))) + mul(c2.transpose(),np.log( sigmoid_Minus1(X.transpose())(w))))
+
 
 def gradient(X, Y):
     n, m = X.shape  # columns
@@ -105,6 +107,7 @@ def gradient(X, Y):
     def gradiesnt_w(w):
         return (1 / m) * (mul(X, sigmoid_Marix(X.transpose())( w) - Y))
     return lambda w:gradiesnt_w(w)
+
 
 def hessian(X):
     n, m = X.shape  # columns
@@ -114,14 +117,16 @@ def hessian(X):
         n, m = X.shape  # columns
         # D=np.diag(logistic_func_Marix(X.transpose())( w).mul(logistic_func_Marix_Minus1(X.transpose())( w)))
         # X.mul(D.mul(X.transpose())) / m
-        D = np.diagflat(np.multiply(sigmoid_Marix(X.transpose())( w), (sigmoid_Minus1(X.transpose())(w))))
+        D = np.diagflat(np.multiply(sigmoid_Marix(X.transpose())(w), (sigmoid_Marix(X.transpose())(w))))
         D_Xt = mul(D, X.transpose())
         x_D_Xt = mul(X, D_Xt) + np.identity(n)
         return (1 / m) * x_D_Xt
-    return lambda w:hessian_w(w)
+    return hessian_w
+
 
 # The gradient test ,The Jacobian test:
-def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,factor=0.5,limit=6):
+def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,
+                           factor=0.5,limit=10):
     def make_rand_vector(dims):
         vec = [gauss(0, 1) for i in range(dims)]
         mag = sum(x ** 2 for x in vec) ** .5
@@ -144,16 +149,16 @@ def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,factor=0.5,limit=6):
     for i in range(1, limit):
         eps_i = (factor ** i) * eps
         w_i = w_0 + eps_i * d
-        #-----gardient test------
+        # -----gardient test------
         res1 = abs(f(w_i) - f(w_0))
         res2 = abs((f(w_i) - f(w_0) - eps_i * mul(d.transpose(), (gradient( w_0)))))
         if (abs((res_1_prev / res1) - 1 / factor) > 1 or abs((res_2_prev / res2) - 1 / (factor ** 2)) > 1):
             # print("failed The gradient test with eps:{0}, iteration {1}".format(eps, i))
             res = False
-        #-------jacobian test------
+        # -------jacobian test------
         res3 = np.linalg.norm(gradient(w_i) - gradient(w_0))
         res4 = np.linalg.norm(((gradient(w_i) - gradient(w_0)).transpose() - eps_i * mul(
-            d.transpose(), (hessian( w_0)))))
+            d.transpose(), (hessian(w_0)))))
         # todo abs((res_4_prev / res4) - 1 / (factor ** 2)) is about 3-4 not 1 check whay 2*(factor ** 2)
         if (abs((res_3_prev / res3) - 1 / factor) > 1 or abs((res_4_prev / res4) - 1 / (factor ** 2)) > 1):
             # print("failed The Jacobian test with eps:{0}, iteration {1}, res is ({2},{3})\n".format(eps, i, abs(
@@ -165,7 +170,7 @@ def gradient_jacobian_test(w_0,f,gradient,hessian,eps=1,factor=0.5,limit=6):
         res_3_prev = res3
         res_4_prev = res4
 
-    if(res==True):
+    if res:
         print("seccesed The gradient and the jacobian test  with eps:{0}, iteration {1}".format(eps, i))
     return res
 
